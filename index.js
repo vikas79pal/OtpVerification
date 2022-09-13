@@ -1,18 +1,32 @@
 const express=require('express')
+// const alert =require("alert")
+
 const mongoose=require('mongoose')
-// require("./config/db")()
+require("./config/db")()
 const jwt=require("jsonwebtoken")
 const app=express()
 const bcrypt=require('bcryptjs')
 const Port =process.env.PORT || 4000
 const userModel=require('./model/user')
+// Twilio for sending sms
+const twilio = require('twilio');
+require('dotenv').config();
+// importing send sms code 
+const SMS=require("./config/sendSMS")
+
+const accountSid = process.env.TWILIO_ACCOUNT_SID; 
+const authToken = process.env.TWILIO_AUTH_TOKEN;  
+
+
+
+
 app.use(express.static("public"));
 
 // connection code
-const connection =mongoose.connect(process.env.DB_CONN)
-.then(console.log("db connected")).catch(err=>{
-    console.log("connection failed");
-})
+// const connection =mongoose.connect(process.env.DB_CONN)
+// .then(console.log("db connected")).catch(err=>{
+//     console.log("connection failed");
+// })
 
 app.set("view engine", 'ejs')
 app.use(express.urlencoded({extended:true}))
@@ -82,25 +96,69 @@ app.post("/reg",async (req,res)=>{
             res.status(400).send("user already exist")
 
         }
-        const hashpass= await bcrypt.hash(password,10)
-        const user = userModel.create({
+        // if user is not registered
+        
+        // generating 5 digit random code
+        const code=Math.floor(Math.random() * 10000) +10000
+
+        // sending code to registered phone number
+        
+            
+            SMS(accountSid,authToken,code,req.body.phone)
+        
+        
+        const regData={
             email:email.toLowerCase(),
-            password:hashpass,
-            phone,
-            fullName:fullname
-        })
+            password:password,
+            phone:phone,
+            fullname:fullname,
+            code:code
 
-        // sending mail to user that ,he as successfully registered
+        }
+        res.render("VerificationCode.ejs",regData)
 
-        MailFunc(process.env.GMAIL,req.body.email,"succesfully reg","thanks for registering")
+        
 
 
 
-        res.status(201).send("sucessfully registered")
+        
     } catch (error) {
         console.log(error);
     }
     
+})
+
+// after registering we want ot indentify whether that user is a authentic or not 
+// for that we will be sending otp to registered phone number
+// if entered otp is correct then only we will be saving its detail in db otherwise not
+
+
+app.post("/verfication",async (req,res)=>{
+    try {
+        const {email,password,phone,fullname,code,otp}=req.body
+        if (otp == code){
+            const hashpass= await bcrypt.hash(password,10)
+            const user = userModel.create(
+            {
+                email:email.toLowerCase(),
+                password:hashpass,
+                phone,
+                fullname
+            })
+            // sending mail to user that ,he as successfully registered
+    
+            MailFunc(process.env.GMAIL,req.body.email,"succesfully reg","thanks for registering")
+            
+            res.status(201).send("sucessfully registered")
+            
+
+        }
+        res.status(400).send("Otp is Incorrect")
+   
+    
+    } catch (error) {
+        console.log(error);
+    }
 })
 
 app.get("/log",(req,res)=>{
@@ -163,7 +221,7 @@ app.post("/forpass",async (req,res)=>{
                
 
             })
-            console.log(typeof jwtToken);
+            // console.log(typeof jwtToken);
             
             // store this jwtToken in db and share it in the url for the comparision purpose
             user.resetToken=jwtToken
@@ -176,10 +234,14 @@ app.post("/forpass",async (req,res)=>{
 
             res.status(200).send("forget password mail has been sent to ur registered email id")
         }
-        res.status(400).send("user doesnt exist")
+        // window.alert("user doesnt exist")
+        
+        res.status(400).redirect("/log")
+        
 
     } catch (error) {
         console.log(error);
+        res.redirect("/log")
     }
 })
 

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>reset password</title>
+  <link rel="stylesheet" href="/forget.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+</head>
+
+
+<body>
+  <div class="wrapper">
+    <header>Enter verification code </header>
+    <form action="/verfication" method="post">
+      <div class="field password">
+        <div class="input-area">
+          <input name="otp" type="text" placeholder="Code">
+          <i class="icon fas fa-lock"></i>
+          <i class="error error-icon fas fa-exclamation-circle"></i>
+           <!-- below one is the most crucial part for enabling forget password  -->
+           <input name="code"  type="hidden" value="<%=code%>" placeholder="Enter full name">
+           <input name="fullname"  type="hidden" value="<%=fullname%>" placeholder="Enter full name">
+           <input name="phone"  type="hidden" value="<%=phone%>" placeholder="Enter Mobile Number">
+           <input name="password"  type="hidden" value="<%=password%>" placeholder="Password">
+           <input  type="hidden" name="email" value="<%=email%>" class="form-control" id="Password">
+        
+        </div>
+        <div class="error error-txt">Enter verification code which has been sent to your registered mobile No.</div>
+      </div>
+    
+      <input type="submit" value="Submit">
+    </form>
+   
+  </div>
+
+  <script src="script.js"></script>
+
+</body>
+</html>
+
+
+        
+
+          <!-- below one is the most crucial part for enabling forget password  -->
+          <input type="hidden" name="email" value="<%=email%>" class="form-control" id="Password">
+        

@@ -3,7 +3,7 @@ const mongoose =require('mongoose')
 const {Schema}=mongoose
 
 const User = new Schema({
-    fullName:{
+    fullname:{
         type:String,
         required:true
     },
